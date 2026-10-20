@@ -3,7 +3,7 @@ name = "schematize-scaffold"
 tag = "Ferramenta · Scaffold"
 status = "beta"
 order = 18
-current_version = "0.6.0"
+current_version = "0.7.0"
 href = "/scaffold"
 
 [descriptions]

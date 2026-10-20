@@ -1,7 +1,7 @@
 ---
 name: schematize-scaffold
 metadata:
-  version: 0.6.0
+  version: 0.7.0
 description: >-
   Blueprint de PROJETO NOVO: piso do dia 0 (workspace, archive, IAM app separada, linguagem por fit + ADR, repos, CI/CD, observabilidade). Use ao começar projeto/repo ou checar o piso.
 ---
@@ -20,7 +20,7 @@ instanciá-lo* num projeto do zero — e como **auditar** (`scaffold-check`) se 
 o tem. O antídoto ao "começa sem IAM/sem ops que a gente coloca depois" — porque **depois é
 nunca**, e "nunca" é um sistema inseguro em produção.
 
-**Versão:** skill `schematize-scaffold` v0.6.0. Changelog em `CHANGELOG.md`.
+**Versão:** skill `schematize-scaffold` v0.7.0. Changelog em `CHANGELOG.md`.
 
 ## Precedência e herança (leia antes de divergir)
 

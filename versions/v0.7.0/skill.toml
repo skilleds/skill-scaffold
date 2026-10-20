@@ -1,0 +1,12 @@
+slug = "scaffold"
+name = "schematize-scaffold"
+tag = "Ferramenta · Scaffold"
+status = "beta"
+order = 18
+current_version = "0.7.0"
+href = "/scaffold"
+
+[descriptions]
+pt = "O scaffolder da casa: o blueprint executável de 'projeto novo da casa', lastro do `schematize new <projeto>`. Cria um projeto que já NASCE com o piso do dia 0 — repos por contexto (`<projeto>_<ctx>_<lang>`), IAM como app separada (`<projeto>_auth_<lang>` + `authfront`, delegação OIDC), front separado, `<projeto>_ops` com isolamento por app, CI com deploy gated, testes/pentest, DoD, archive/índice e overdev; linguagem por fit + ADR. Traz o scaffold-new (criar) e o scaffold-check (auditar o piso de um projeto existente). Nada de projeto sem IAM/sem ops 'pra depois' — o piso é dia 0."
+en = "The house scaffolder: the executable blueprint of a 'new house project', the backing for `schematize new <project>`. Creates a project that is BORN with the day-0 floor — repos per context (`<project>_<ctx>_<lang>`), IAM as a separate app (`<project>_auth_<lang>` + `authfront`, OIDC delegation), separate frontend, `<project>_ops` with per-app isolation, CI with gated deploy, tests/pentest, DoD, archive/index and overdev; language by fit + ADR. Ships scaffold-new (create) and scaffold-check (audit an existing project's floor). No project 'without IAM/without ops for later' — the floor is day 0."
+es = "El scaffolder de la casa: el blueprint ejecutable de 'proyecto nuevo de la casa', el respaldo de `schematize new <proyecto>`. Crea un proyecto que NACE con el piso del día 0 — repos por contexto (`<proyecto>_<ctx>_<lang>`), IAM como app separada (`<proyecto>_auth_<lang>` + `authfront`, delegación OIDC), frontend separado, `<proyecto>_ops` con aislamiento por app, CI con deploy gated, pruebas/pentest, DoD, archive/índice y overdev; lenguaje por fit + ADR. Incluye scaffold-new (crear) y scaffold-check (auditar el piso de un proyecto existente). Nada de proyecto sin IAM/sin ops 'para después' — el piso es día 0."
