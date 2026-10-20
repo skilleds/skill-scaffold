@@ -2,6 +2,11 @@
 
 Todas as mudanças relevantes deste pacote, no formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 com versionamento [SemVer](https://semver.org/lang/pt-BR/).
+## [0.7.0] — 2026-10-20
+### Adicionado
+- Piso do dia 0 exige passkey na fase 0 e matriz de acesso por rota com gate no CI desde o primeiro endpoint.
+- Script `scripts/check-day0-auth.sh` (+ teste) e check com 11 peças.
+
 
 
 ## [0.6.0] — 2026-10-14

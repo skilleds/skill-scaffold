@@ -71,6 +71,7 @@ O IAM é dia 0 e é o coração do piso — então vem cedo, não por último.
    escolhida pra scaffoldar (`references/piso.md` §3, `schematize-engineering/references/iam.md`).
 9. **`<projeto>_authfront`** — o front de login/registro/recuperação/gestão de fatores
    (`schematize-web`; segredo server-side).
+    **Passkey na fase 0:** registro+asserção reais e2e antes de qualquer feature, com os testes de challenge reutilizado, origin/rpId errado e credencial revogada (piso 21; `schematize-iam`).
 10. **Fronteira de delegação:** o app principal (Fase 3) já nasce **cliente OIDC** do auth —
     nunca com login próprio embutido.
 
@@ -107,6 +108,7 @@ O IAM é dia 0 e é o coração do piso — então vem cedo, não por último.
     fixtures/seeds só emitem `<papel>+<run-id>-<n>@test.<domain>`; o gate
     `check-external-effects.sh` entra no CI e o **DNS em rota nula** (null MX + SPF `-all` +
     DMARC `p=reject`) abre como item pra `schematize-infra`.
+    **Matriz de acesso por rota:** o gate `check-route-authz.sh` (M == N) entra no CI **junto com o primeiro endpoint** (piso 20; `schematize-qa`); `scripts/check-day0-auth.sh` confere a presença no check.
 19. **Índice/MAPA** (§39) gerado (`/eng-index`) e no archive.
 
 ## Fase 6 — Ligar o overdev e fechar provado
@@ -123,6 +125,8 @@ O IAM é dia 0 e é o coração do piso — então vem cedo, não por último.
 - [ ] Fase 0: slug, bounded contexts, linguagem+ADR por serviço, domínio, plano no archive
 - [ ] <projeto>_archive/ criado conforme a planta de `schematize-archive → references/archive.md`
 - [ ] <projeto>_auth_<lang> — IdP com baseline 2FA (ID≠email, senha+OTP, passkey, ReBAC, OIDC/JWKS)
+- [ ] passkey na fase 0: registro+asserção reais e2e + testes (challenge reutilizado, origin/rpId errado, credencial revogada) — `scripts/check-day0-auth.sh`
+- [ ] matriz de acesso por rota + gate M == N no CI desde o primeiro endpoint (4 personas, status e corpo, deny-by-default)
 - [ ] <projeto>_authfront — front de auth
 - [ ] app principal delega ao auth por OIDC/PKCE (sem login embutido)
 - [ ] <projeto>_<ctx>_<lang> — contextos do produto (segurança, testes/pentest, observabilidade, independência de runtime)

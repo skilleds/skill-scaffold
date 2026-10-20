@@ -43,6 +43,12 @@ OIDC + JWKS **rodando** (mesma disciplina do "suspeito ≠ achado"). Parcial con
    rodando e **falhando de propósito** uma vez. *(Esta peça existia no `SKILL.md` e no `CLAUDE.md`
    da skill e **faltava aqui** — o comando enumerava 1..8 e parava, uma regressão do próprio
    v0.2.0. Achado da vistoria de 2026-08-21.)*
+10. **Matriz de acesso por rota** — teste unit/componente das 4 personas (anônimo, não
+    privilegiado, privilegiado, burlas) por rota do inventário, status e corpo; deny-by-default;
+    allowlist de públicas com dono; `check-route-authz.sh` (M == N) no CI.
+11. **Passkey na fase 0** — registro+asserção reais e2e no `auth.<domain>`; testes de challenge
+    reutilizado, origin/rpId errado e credencial revogada rejeitados.
+    **Como provar hoje (10 e 11):** `bash .claude/skills/schematize-scaffold/scripts/check-day0-auth.sh .` → exit 0.
 
 Cheque também: todo serviço tem **ADR de linguagem** `accepted`? backend novo fora do rol
 (Node/PHP) sem ADR de exceção é achado (`references/linguagem.md`).

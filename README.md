@@ -39,9 +39,9 @@ unzip skill-scaffold.zip -d .claude/skills/
 
 ## O que tem dentro
 
-- **SKILL.md** — o contrato: 9 pisos inegociáveis (o piso é dia 0; auth app separada desde o 1º
+- **SKILL.md** — o contrato: 10 pisos inegociáveis (o piso é dia 0; auth app separada desde o 1º
   commit; um repo = um bounded context no workspace; `<projeto>_ops` desde o dia 0; linguagem por
-  fit + ADR inicial; archive/índice desde o 1º commit; overdev + DoD como gate) + mapa de references.
+  fit + ADR inicial; archive/índice desde o 1º commit; overdev + DoD como gate; IAM com passkey na fase 0 e matriz de acesso por rota) + mapa de references.
 - **references/** — `estrutura` (a topologia canônica), `piso` (o piso de fábrica do dia 0),
   `linguagem` (rol + fit + ADR inicial), `bootstrap` (o passo-a-passo de criar), `check` (auditar o
   piso de um projeto existente), `gui` (como a skill vira botão na GUI, via `gui.json`).

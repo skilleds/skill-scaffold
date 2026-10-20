@@ -32,6 +32,7 @@ Vem montado, valha qual linguagem for:
   `schematize-qa` → `references/estrategia.md` e `references/execucao.md` (a disciplina de teste saiu
   da engineering na extração da Q.A.); arsenal na
   `schematize-pentest`.
+- **Matriz de acesso por rota desde o PRIMEIRO endpoint** (piso 20 da engineering): toda rota nasce com teste unit/componente das 4 personas (anônimo, autenticado não privilegiado, privilegiado, burlas), status **e** corpo, deny-by-default, allowlist de rotas públicas com dono, inventário derivado do código/spec e gate **M == N** no CI (`schematize-qa` → `scripts/check-route-authz.sh`). O scaffold planta o esqueleto da matriz e o gate no CI; **rota sem linha na matriz quebra o build**. O ofensivo periódico é a `schematize-pentest`.
 - O scaffold cria a **estrutura de testes** e o alvo de CI no dia 0 — não um `TODO: add tests`.
 
 ## 3. IAM baseline 2FA (app separada — o coração do piso)
@@ -47,6 +48,7 @@ O auth (`<projeto>_auth_<lang>` + `<projeto>_authfront`, `references/estrutura.m
   incentivado just-in-time (step-up), **nunca muro pré-login**.
 - **Passkey/WebAuthn é núcleo** (phishing-resistant, "2 fatores num"), não roadmap. Twilio pra
   SMS/voz; provedores plugáveis (`EmailProvider`/`SmsProvider`/`PushProvider`).
+- **Passkey/WebAuthn é o método PADRÃO e entra na FASE 0 do projeto** (piso 21 da engineering): registro e asserção reais ponta a ponta no `auth.<domain>` **antes de qualquer feature**; passwordless-first (senha + Email OTP fica de fallback/2FA baseline). Teste obrigatório: registro, login, challenge reutilizado, origin/rpId errado e credencial revogada rejeitados. A implementação mora no IAM da casa (`schematize-iam`); o app cliente só integra por OIDC/PKCE + passkey (`schematize-web` `/web-iam`, `schematize-mobile` `/mobile-auth`).
 - **Recuperação tão forte quanto o login** (nada de reset por 1 email que passa por cima do 2FA);
   **SSO nunca é ponto único de falha** (força ≥1 fator de recuperação local); account-linking
   explícito e anti-takeover.
@@ -244,3 +246,5 @@ reputação em jogo.
 | 7 | Archive/índice | `<projeto>_archive/` + MAPA/índice (§39), root limpo |
 | 8 | Overdev | `/eng-overdev` disponível; bootstrap como checklist |
 | 9 | Efeito externo (sink de fábrica) | `MAIL_PROVIDER=sink` default, `TEST_MAIL_DOMAIN`, `MAIL_MAX_PER_RUN`, guard no provider, Mailpit no compose |
+| 10 | Matriz de acesso por rota | teste das 4 personas por rota (status e corpo), deny-by-default, allowlist de públicas, gate M == N no CI (`scripts/check-day0-auth.sh`) |
+| 11 | Passkey na fase 0 | registro+asserção reais e2e no `auth.<domain>`; testes de challenge reutilizado, origin/rpId errado e credencial revogada (`scripts/check-day0-auth.sh`) |

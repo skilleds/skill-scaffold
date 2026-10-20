@@ -6,7 +6,7 @@
 > Pareia com a `schematize-audit` (que audita se os *checklists criados* foram sanados; este
 > audita se o *piso* está lá).
 
-## 1. O que o check verifica (as 9 peças do piso)
+## 1. O que o check verifica (as 11 peças do piso)
 
 Para cada peça, o veredito é **presente / ausente / parcial**, sempre **com prova** (não "parece
 que tem"). A tabela é o `references/piso.md` §10; abaixo, o que conta como prova de cada uma.
@@ -22,6 +22,10 @@ que tem"). A tabela é o `references/piso.md` §10; abaixo, o que conta como pro
 | 7 | **Archive/índice** | `<projeto>_archive/` existe e é usado; `MAPA.md`/índice (§39); root limpo | MD gerado solto no root; sem archive |
 | 8 | **Overdev** | `/eng-overdev` disponível; histórico de checklist no archive | sem checklist e sem histórico. **Em projeto NOVO é veto** (peça do dia 0, `SKILL.md`/`CLAUDE.md`); **em projeto existente é achado obrigatório de saneamento**, com prazo — ver §4 |
 | 9 | **Efeito externo (sink de fábrica)** | `MAIL_PROVIDER=sink` é o **default** fora de prd; `TEST_MAIL_DOMAIN` setado; `MAIL_MAX_PER_RUN` com abort; **guard dentro do provider** com **teste que vê a recusa**; Mailpit no compose de dev; nenhum `@gmail.com`/caixa real em seed/fixture/persona | provedor real ligado por default em dev/hml; chave de prd no `.env` de não-prd; envio **sem cap**; endereço de caixa real em fixture; guard "no chamador" (ou nenhum) |
+| 10 | **Matriz de acesso por rota** | teste unit/componente com as 4 personas por rota do inventário (status e corpo); deny-by-default; allowlist de públicas com dono; `check-route-authz.sh` (M == N) no CI | rota sem linha na matriz; rota pública sem justificativa; sem gate; só teste e2e/manual |
+| 11 | **Passkey na fase 0** | registro+asserção reais e2e no `auth.<domain>`; testes de challenge reutilizado, origin/rpId errado e credencial revogada rejeitados | `"passkey"` só como label AAL; passkey "pra depois"; só senha+OTP |
+
+**Prova das peças 10 e 11:** `bash scripts/check-day0-auth.sh .` → exit 0 (presença dos testes e do gate; a qualidade e o vermelho visto são da `schematize-qa`).
 
 ## 2. Como conduzir (enumerar → provar → classificar)
 
@@ -48,6 +52,8 @@ item de um **checklist de saneamento** (candidato a `/eng-overdev`), com o coman
 - [ ] CI sem gate → amarrar deploy à promoção (dev→teste→git→hml→prd), só promover verde
 - [ ] sem observabilidade → integrar health/logs/métricas/tracing
 - [ ] sem archive → criar <projeto>_archive/, mover MD do root, gerar MAPA/índice (/eng-index)
+- [ ] rota sem teste de matriz de acesso / sem gate M == N → montar a matriz (`schematize-qa`, `check-route-authz.sh`) e plugar no CI; rota pública vira allowlist com dono
+- [ ] passkey ausente ou só de rótulo → implementar registro+asserção reais no IAM (`schematize-iam`), com os 5 testes da fase 0
 - [ ] serviço sem ADR de linguagem → gravar ADR (fit) no dia (retroativo)
 - [ ] provider de envio real por default fora de prd → inverter o default (MAIL_PROVIDER=sink), guard dentro do provider + teste da recusa, cap por execução (MAIL_MAX_PER_RUN)
 - [ ] endereço de caixa real em seed/fixture/persona → reescrever pro domínio de teste em rota nula (test.<domain>) e plugar o gate no CI
@@ -71,7 +77,7 @@ item de um **checklist de saneamento** (candidato a `/eng-overdev`), com o coman
   saneamento com prazo** — o que não pode é sumir do relatório, que era o efeito de chamá-la de
   "só sinal".
 - Observabilidade pesa junto; o **veto duro imediato** continua sendo **segurança + IAM + ops +
-  archive**.
+  archive**, e agora também **matriz de acesso por rota** (rota entregando dado sem autenticação é o bug recorrente a eliminar).
 - **Efeito externo é veto duro quando o projeto envia qualquer coisa:** provedor real ligado por
   default fora de `prd`, envio sem cap ou endereço de caixa real em fixture/seed **reprovam** o
   check — o dano (reputação de domínio queimada, **OTP de login** de prd parando de chegar) não

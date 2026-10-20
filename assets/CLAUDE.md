@@ -56,12 +56,14 @@ Consulte o reference antes de agir — não trabalhe de memória.
 - **Projeto novo (`/scaffold-new`):** decide topologia + linguagem/ADR (Fase 0), cria o archive,
   scaffolda o **auth primeiro** (app separada + OIDC), depois contextos + front, o `ops`, amarra
   CI gated + DoD + observabilidade, liga o overdev e fecha com `/scaffold-check` verde.
-- **Projeto existente (`/scaffold-check`):** audita as 9 peças do piso **com prova de hoje**,
+- **Projeto existente (`/scaffold-check`):** audita as 11 peças do piso **com prova de hoje**,
   aponta `missing`/`partial` com origem, gera o **checklist de saneamento** (candidato a
   `/eng-overdev`) e **trava** se faltar peça do dia 0 (IAM/segurança/ops/archive). Relatório em
   `<project>_archive/scaffold/`.
 
-9. <!-- herdado:engineering/orquestracao:curto -->**Orquestrador não desenvolve; subagent barato executa.** O agent principal só planeja, despacha e revisa; ação onerosa vira micro-tasks para o executor mais barato que resolve: `haiku` (mecânico) / `sonnet` (código; falhou → mesmo subagent corrige, até 2 rodadas) → Codex `gpt-5.6-terra` → Cursor → subagent `opus` (motivo) → `park`; **visual vai direto ao Codex**; **imagem nunca pelo Claude: detectar Codex/Gemini e perguntar ao usuário qual usar (Codex é a sugestão), nunca API de imagem paga**; papéis em `agentes.toml`. No overdev, cada item do checklist vai a um subagent e o principal revisa antes do `- [x]`. **Sem frota ociosa:** idle com pendência volta ao trabalho; dependente de outro agent → mata e enfileira com gatilho; terminou → mata (§9.6). Detalhe: `schematize-engineering` → `references/orquestracao.md` §9.<!-- /herdado --> O `CLAUDE.md` que o scaffold gera para o projeto novo inclui este piso.
+9. **IAM com passkey na fase 0 e matriz de acesso por rota desde o primeiro endpoint.** Passkey/WebAuthn é o método padrão (piso 21): registro+asserção reais e2e antes de qualquer feature, com testes de challenge reutilizado, origin/rpId errado e credencial revogada rejeitados; a implementação mora no IAM da casa (`schematize-iam`). Toda rota nasce com teste de matriz de acesso (piso 20): 4 personas, status e corpo, deny-by-default, allowlist de públicas com dono, gate M == N no CI (`schematize-qa`). `/scaffold-check` confere como 10ª e 11ª peças (`scripts/check-day0-auth.sh`).
+
+10. <!-- herdado:engineering/orquestracao:curto -->**Orquestrador não desenvolve; subagent barato executa.** O agent principal só planeja, despacha e revisa; ação onerosa vira micro-tasks para o executor mais barato que resolve: `haiku` (mecânico) / `sonnet` (código; falhou → mesmo subagent corrige, até 2 rodadas) → Codex `gpt-5.6-terra` → Cursor → subagent `opus` (motivo) → `park`; **visual vai direto ao Codex**; **imagem nunca pelo Claude: detectar Codex/Gemini e perguntar ao usuário qual usar (Codex é a sugestão), nunca API de imagem paga**; papéis em `agentes.toml`. No overdev, cada item do checklist vai a um subagent e o principal revisa antes do `- [x]`. **Sem frota ociosa:** idle com pendência volta ao trabalho; dependente de outro agent → mata e enfileira com gatilho; terminou → mata (§9.6). Detalhe: `schematize-engineering` → `references/orquestracao.md` §9.<!-- /herdado --> O `CLAUDE.md` que o scaffold gera para o projeto novo inclui este piso.
 
 ## Relação com as outras skills
 
