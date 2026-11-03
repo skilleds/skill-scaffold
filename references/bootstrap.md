@@ -38,9 +38,9 @@ Scaffoldar sem decidir a fronteira é montar um monólito por acidente. Antes de
 2. **Bounded contexts** — quais aplicações o produto tem (o core do negócio + o que mais). Cada
    um vira um repo `<projeto>_<ctx>_<lang>`. Na dúvida, comece com **um** contexto de produto — é
    melhor um contexto bem-fechado que um monólito com dois domínios colados.
-3. **Linguagem por serviço + ADR inicial** (`references/linguagem.md`): fit → ADR `accepted`. O
-   **auth → Rust** (default, por errar-caro); o core segue a tabela de fit, com **Go** no empate;
-   o front é **Node**. Sem "tende": a regra está em §0.
+3. **Linguagem por serviço + ADR inicial** (`references/linguagem.md`): fit → ADR `accepted`. Os
+   defaults (**auth/cripto → Rust**, **resto → Go** no empate, front **Node**) são **só desempate**,
+   e cada um exige ADR (piso 9 da engineering: por fit + ADR, não por gosto).
 4. **Domínio** (`<domain>`) — pra `auth.<domain>` e o roteamento.
 5. **Grave o plano** em `<projeto>_archive/plan/<data>-scaffold.md` (topologia + ADRs + o
    checklist de bootstrap abaixo) e **peça aprovação** se a topologia for grande. Este é um alvo
@@ -54,12 +54,16 @@ Scaffoldar sem decidir a fronteira é montar um monólito por acidente. Antes de
    repo) e `assets/templates/env.example.tpl` → `.env.example`. O `.gitignore` entra **antes do
    primeiro commit**: segredo commitado uma vez está **vazado para sempre** (a ação é rotacionar,
    não "remover o commit"). O `.env.example` já vem com as **4 camadas** do piso de efeito externo
-   preenchidas (`MAIL_PROVIDER=sink`, `MAIL_SINK_API`, `TEST_MAIL_DOMAIN`, `MAIL_MAX_PER_RUN`).
+   preenchidas (`MAIL_PROVIDER=sink`, `MAIL_SINK_URL`, `TEST_MAIL_DOMAIN`, `MAIL_MAX_PER_RUN`).
 
 7. **Crie `<projeto>_archive/`** já no dia 0, com a planta CANÔNICA da `schematize-archive`
    (`references/archive.md`, seção "Estrutura") — ou rode `/archive-init`, que a materializa.
    Não invente a árvore aqui: planta duplicada foi o achado B2 da vistoria. O rastro existe antes
-   do código (`references/piso.md` §7).
+   do código (`references/piso.md` §7). Ele já traz `relatorios/`, `custos/` e `.ritmo.json`
+   (`assets/templates/ritmo.json.tpl`): **gere o 1º relatório** (piso 26).
+7.1. **Git remoto por repo (piso 22):** `gh repo create <org>/<repo> --private` + `git push -u origin
+   main` para o archive (PRIVADO) e, **ao criar cada repo seguinte** (auth, authfront, ctx, front,
+   ops), na hora. Bootstrap com repo só local ou `HEAD != origin` **não conclui**.
 
 ## Fase 2 — O auth, PRIMEIRO (app separada)
 
@@ -91,13 +95,21 @@ O IAM é dia 0 e é o coração do piso — então vem cedo, não por último.
     (`bootstrap`/`install`/`redeploy`/`update`/`config`/`migrate`/`health`/`rollback`/`logs`/
     `reset`/`test`), **fluxo de promoção** (dev→teste→git→hml→prd), **deploy destrutivo por seed**
     (`/<app>/.env`), **isolamento por app** (user Linux + systemd hardened por serviço),
-    **instalação paralela** (`nproc`). Use o `/<prefixo>-ops` da linguagem. O `bootstrap` do ops é o
+    **instalação paralela** (`nproc`). Use o `/<prefixo>-ops` da linguagem. Nasce com o contrato da IA:
+    **deploy só do git** (clone/fetch+checkout de SHA verificado; VETADO scp/rsync/tar|ssh — piso 23) e
+    **ops como gate da IA** (allowlist de operações tipadas, dry-run, log de auditoria append-only,
+    canal único; a IA nunca escreve SQL — piso 24). Máquina dev/hml de build? `assets/templates/maquinas.yml.tpl` (piso 29). O `bootstrap` do ops é o
     que clona os repos irmãos em `/<app>/`.
 
 ## Fase 5 — CI, DoD e observabilidade amarrados
 
-15. **CI com deploy gated:** pipeline que roda o test kit + gate da DoD e **só promove o que
-    passou**; promoção pra hml/prd gated pelo fluxo (`references/piso.md` §4, §6).
+15. **CI com deploy gated e gatilho do piso 27:** copie `assets/templates/ci.yml.tpl` →
+    `.github/workflows/ci.yml` (**`workflow_dispatch` + `push: tags [hml-*, v*]`**, `concurrency`
+    cancel-in-progress; **sem `pull_request`/push em branch**). O gate por commit é LOCAL
+    (`tools/ci.sh`/pre-push); o remoto roda uma vez antes do hml. Só promove o que passou
+    (`references/piso.md` §4, §6). **Não copie o `on:` de template de linguagem.**
+15.1. **Resiliência (28):** `assets/templates/resilience.yml.tpl` na raiz de cada serviço + fila
+    durável (outbox/inbox, DLQ) + os 7 testes nascendo vermelhos (`references/estrutura.md` §7).
 16. **DoD (§35) como gate de PR/entrega** em cada repo (review + testes + archive + índice).
 17. **Observabilidade** integrada em todo serviço e no ops (health/logs/métricas/tracing —
     `references/piso.md` §5).
@@ -133,7 +145,11 @@ O IAM é dia 0 e é o coração do piso — então vem cedo, não por último.
 - [ ] <projeto>_front — front do produto (schematize-web)
 - [ ] root de cada repo limpo + CLAUDE.md aplicado
 - [ ] <projeto>_ops — control plane (promoção, seed, user+systemd por app, nproc, comandos idempotentes)
-- [ ] CI com deploy gated (só promove verde; hml/prd pelo fluxo)
+- [ ] CI = `ci.yml.tpl` (workflow_dispatch + tags hml-*/v*, concurrency, sem PR); gate por commit local; só promove verde
+- [ ] git remoto por repo (`gh repo create --private` + push) e archive PRIVADO; `HEAD == origin` em todos (piso 22)
+- [ ] ops: deploy só do git (23) + gate da IA com allowlist/auditoria (24); `maquinas.yml` se há dev/hml (29)
+- [ ] archive: `relatorios/` + 1º relatório, `.ritmo.json`, `custos/` (26)
+- [ ] `resilience.yml` + fila durável + 7 testes em cada serviço (28)
 - [ ] DoD (§35) como gate de entrega em cada repo
 - [ ] observabilidade integrada (health/logs/métricas/tracing) em todo serviço + ops
 - [ ] **banco do dia 0**: um banco/schema por serviço · schema desenhado (`/database-design`) com PK
@@ -142,5 +158,5 @@ O IAM é dia 0 e é o coração do piso — então vem cedo, não por último.
 - [ ] efeito externo em sink de fábrica: .env.example com APP_ENV + MAIL_PROVIDER=sink + TEST_MAIL_DOMAIN + MAIL_MAX_PER_RUN, Mailpit no compose de dev, guard no provider com teste da recusa, fixtures só no domínio de teste, gate no CI
 - [ ] domínio de teste test.<domain> em rota nula (null MX + SPF -all + DMARC p=reject) provado por dig (schematize-infra)
 - [ ] índice/MAPA (§39) gerado e no archive
-- [ ] overdev disponível; /scaffold-check passa com zero itens do piso faltando
+- [ ] overdev disponível; /scaffold-check passa com zero itens do piso faltando (inclui `scripts/check-piso22-29.sh` verde)
 ```

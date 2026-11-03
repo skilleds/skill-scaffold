@@ -1,5 +1,5 @@
 ---
-description: schematize-scaffold — audita um projeto EXISTENTE contra o piso do dia 0 (IAM app-separada, ops/isolamento, CI gated, testes/pentest, DoD, archive/índice, overdev), com prova; gera checklist de saneamento e trava se faltar peça
+description: schematize-scaffold — audita um projeto EXISTENTE contra o piso do dia 0 (18 peças: IAM, ops, CI só antes do hml, git remoto, resiliência, ritmo, DoD, archive, overdev), com prova; gera checklist de saneamento e trava se faltar peça
 argument-hint: "[dir do projeto/workspace, ex: .]"
 ---
 
@@ -49,6 +49,15 @@ OIDC + JWKS **rodando** (mesma disciplina do "suspeito ≠ achado"). Parcial con
 11. **Passkey na fase 0** — registro+asserção reais e2e no `auth.<domain>`; testes de challenge
     reutilizado, origin/rpId errado e credencial revogada rejeitados.
     **Como provar hoje (10 e 11):** `bash .claude/skills/schematize-scaffold/scripts/check-day0-auth.sh .` → exit 0.
+12. **Git remoto (22)** — cada repo, inclusive o `_archive` PRIVADO: `git remote -v` não vazio, `status` limpo, `HEAD == origin`.
+13. **Deploy só do git (23)** — sem `scp`/`rsync`/`tar|ssh`/`docker save|load`; ops clona/atualiza SHA verificado.
+14. **Ops é o gate da IA (24)** — allowlist de operações tipadas, dry-run, log de auditoria; IA nunca escreve SQL/comando próprio.
+15. **Ritmo + custos (25/26)** — `relatorios/` (30 min), `.ritmo.json` (handoff 6 h), `custos/`; sem agent ocioso.
+16. **CI só antes do hml (27)** — `workflow_dispatch` + tags `hml-*`/`v*`, `concurrency`; **sem** `pull_request`/push em branch.
+17. **Microserviço autônomo (28)** — `resilience.yml` por serviço, fila durável, 7 testes (M == N).
+18. **Build em dev/hml + higiene (29)** — `maquinas.yml` (`env` dev|hml, `papel: build-teste`), `higiene.sh` após cada ciclo.
+    **Como provar hoje (12 a 18):** `bash .claude/skills/schematize-scaffold/scripts/check-piso22-29.sh <workspace>` → exit 0
+    (use `--ativo` em sessão em andamento).
 
 Cheque também: todo serviço tem **ADR de linguagem** `accepted`? backend novo fora do rol
 (Node/PHP) sem ADR de exceção é achado (`references/linguagem.md`).
@@ -61,7 +70,7 @@ Cada peça `missing`/`partial` vira um item (candidato a `/eng-overdev`) com o c
 
 ## 4. Gate (`references/check.md` §4)
 Piso são = **zero peças `missing`/`partial` do dia 0** (segurança, IAM app-separada, ops/CI gated,
-testes, DoD, archive). **IAM e segurança são prioridade 0** — projeto sem IAM app-separada **não
+testes, DoD, archive, **git remoto/push, CI sem PR, resiliência — pisos 22–29**). **IAM e segurança são prioridade 0** — projeto sem IAM app-separada **não
 passa**. O check **não fecha** peça (não marque presente sem prova); quem conserta é o run de
 saneamento, e depois **rode o check de novo**. Grave o relatório em
 `<projeto>_archive/scaffold/<data>.md` (nunca no root).

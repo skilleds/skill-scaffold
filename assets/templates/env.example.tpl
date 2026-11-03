@@ -19,16 +19,18 @@ AUTH_ISSUER_URL=http://localhost:8787
 AUTH_CLIENT_ID=app-local
 # AUTH_CLIENT_SECRET fica no cofre, nunca aqui e nunca no cliente.
 
-# --- EFEITO EXTERNO: as 4 camadas do piso (ADR-0004) --------------------------
+# --- EFEITO EXTERNO: as 4 camadas do piso (schematize-engineering/references/efeitos-externos.md) --------------------------
 # 1) provider default = SINK fora de prd. `smtp`/real so em producao.
 MAIL_PROVIDER=sink
 # 2) o sink local (Mailpit) — e dele que o TESTE le a caixa, nunca de caixa real.
-MAIL_SINK_API=http://localhost:8025
+MAIL_SINK_URL=http://localhost:8025
 # 3) dominio de teste em ROTA NULA (null MX + SPF -all + DMARC p=reject).
 #    Todo endereco sintetico de fixture/seed/persona vive aqui.
 TEST_MAIL_DOMAIN=test.example.test
 # 4) cap por execucao — vale em TODOS os ambientes; e freio, nao camada de sandbox.
 MAIL_MAX_PER_RUN=50
+# 5) remetente de um subdominio de envio SEPARADO por ambiente (nunca o dominio de producao).
+MAIL_FROM=nao-responda@mail-hml.example.test
 
 # --- Observabilidade -----------------------------------------------------------
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317

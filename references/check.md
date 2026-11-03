@@ -6,7 +6,7 @@
 > Pareia com a `schematize-audit` (que audita se os *checklists criados* foram sanados; este
 > audita se o *piso* está lá).
 
-## 1. O que o check verifica (as 11 peças do piso)
+## 1. O que o check verifica (as 18 peças do piso)
 
 Para cada peça, o veredito é **presente / ausente / parcial**, sempre **com prova** (não "parece
 que tem"). A tabela é o `references/piso.md` §10; abaixo, o que conta como prova de cada uma.
@@ -25,7 +25,19 @@ que tem"). A tabela é o `references/piso.md` §10; abaixo, o que conta como pro
 | 10 | **Matriz de acesso por rota** | teste unit/componente com as 4 personas por rota do inventário (status e corpo); deny-by-default; allowlist de públicas com dono; `check-route-authz.sh` (M == N) no CI | rota sem linha na matriz; rota pública sem justificativa; sem gate; só teste e2e/manual |
 | 11 | **Passkey na fase 0** | registro+asserção reais e2e no `auth.<domain>`; testes de challenge reutilizado, origin/rpId errado e credencial revogada rejeitados | `"passkey"` só como label AAL; passkey "pra depois"; só senha+OTP |
 
-**Prova das peças 10 e 11:** `bash scripts/check-day0-auth.sh .` → exit 0 (presença dos testes e do gate; a qualidade e o vermelho visto são da `schematize-qa`).
+| 12 | **Git remoto (22)** | cada repo (e o `_archive`, PRIVADO): `git remote -v` não vazio, `status` limpo, `HEAD == origin` | repo só local; push falho; árvore suja; archive sem remote privado |
+| 13 | **Deploy só do git (23)** | ops clona/atualiza SHA/tag verificado; nenhum `scp`/`rsync`/`tar\|ssh`/`docker save` em deploy/CI/ops | envio de código por scp/rsync; editar arquivo na VPS; tarball promovido |
+| 14 | **Ops é o gate da IA (24)** | `<projeto>_ops` com allowlist de operações tipadas, dry-run, log de auditoria append-only; canal único (`command=` forçado/mTLS) | IA com `ssh` livre; SQL/comando próprio da IA; ops sem auditoria |
+| 15 | **Ritmo + custos (25/26)** | `relatorios/*.md`, `.ritmo.json` (2 carimbos ISO-8601), `custos/`; handoff ≤ 6 h; relatório ≤ 30 min | archive sem relatórios/custos; carimbos vencidos; agents ociosos |
+| 16 | **CI só antes do hml (27)** | `workflow_dispatch` + `push: tags [hml-*, v*]`, `concurrency` cancel-in-progress, `paths-ignore`; gate por commit local | `pull_request`, push em branch, `workflow_run`, `schedule`; sem concurrency; "CI verde no PR" |
+| 17 | **Microserviço autônomo (28)** | `resilience.yml` por serviço; fila durável (outbox/inbox, DLQ); os 7 testes nomeados (M == N) | serviço crasha sem o vizinho; fila em memória; sem teste de resiliência |
+| 18 | **Build em dev/hml + higiene (29)** | `maquinas.yml` (se existe): `env` ∈ {dev,hml}, `papel: build-teste`; `higiene.sh` após cada ciclo | `env: prd`/`staging`; ponte direta p/ prd; build/cache acumulado |
+
+**Prova das peças 10 e 11:** `bash .claude/skills/schematize-scaffold/scripts/check-day0-auth.sh .` → exit 0 (presença das *declarações* de teste e do gate executável; a qualidade e o vermelho visto são da `schematize-qa`).
+
+**Prova das peças 12 a 18:** `bash .claude/skills/schematize-scaffold/scripts/check-piso22-29.sh [--ativo] <workspace>` → exit 0. Delega, se a
+engineering estiver à mão, a `check-deploy-git.sh`, `check-resilience.sh` e (com `--ativo`) `check-ritmo.sh`; a
+execução de fato dos testes é do CI da stack.
 
 ## 2. Como conduzir (enumerar → provar → classificar)
 
@@ -54,6 +66,13 @@ item de um **checklist de saneamento** (candidato a `/eng-overdev`), com o coman
 - [ ] sem archive → criar <projeto>_archive/, mover MD do root, gerar MAPA/índice (/eng-index)
 - [ ] rota sem teste de matriz de acesso / sem gate M == N → montar a matriz (`schematize-qa`, `check-route-authz.sh`) e plugar no CI; rota pública vira allowlist com dono
 - [ ] passkey ausente ou só de rótulo → implementar registro+asserção reais no IAM (`schematize-iam`), com os 5 testes da fase 0
+- [ ] repo sem remote/push (ou archive público) → `gh repo create <org>/<repo> --private`, push, `HEAD == origin` (piso 22)
+- [ ] deploy por scp/rsync/tar|ssh → ops passa a clonar/fetch+checkout de SHA verificado (piso 23)
+- [ ] IA com acesso livre à VPS / ops sem allowlist e auditoria → canal único + operações tipadas (piso 24)
+- [ ] sem relatorios/ · .ritmo.json · custos/ → `/archive-init` + `ritmo.json.tpl`; gerar o 1º relatório (piso 26)
+- [ ] CI com pull_request/push em branch → trocar pelo `ci.yml.tpl` (dispatch + tags), gate por commit local (piso 27)
+- [ ] serviço sem resilience.yml / 7 testes / fila durável → `resilience.yml.tpl` + testes (piso 28)
+- [ ] build sem higiene / máquina com env prd → `maquinas.yml.tpl`, `higiene.sh` (piso 29)
 - [ ] serviço sem ADR de linguagem → gravar ADR (fit) no dia (retroativo)
 - [ ] provider de envio real por default fora de prd → inverter o default (MAIL_PROVIDER=sink), guard dentro do provider + teste da recusa, cap por execução (MAIL_MAX_PER_RUN)
 - [ ] endereço de caixa real em seed/fixture/persona → reescrever pro domínio de teste em rota nula (test.<domain>) e plugar o gate no CI
@@ -82,6 +101,9 @@ item de um **checklist de saneamento** (candidato a `/eng-overdev`), com o coman
   default fora de `prd`, envio sem cap ou endereço de caixa real em fixture/seed **reprovam** o
   check — o dano (reputação de domínio queimada, **OTP de login** de prd parando de chegar) não
   tem undo, e o conserto é barato **antes** do primeiro laço.
+- **Pisos 22–29 (peças 12–18) são veto duro:** repo sem remote/push, deploy por scp/rsync, CI com
+  `pull_request`/push em branch, serviço sem `resilience.yml` ou archive sem remote privado
+  **reprovam** o check (`check-piso22-29.sh`).
 - **IAM e segurança são prioridade 0:** um projeto sem IAM app-separada **não passa** — o
   saneamento do auth vem antes de qualquer feature.
 - O check é **read-mostly**: aponta e gera o saneamento; **quem conserta** é o run de saneamento

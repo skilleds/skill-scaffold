@@ -23,4 +23,7 @@ echo "── sem teste de matriz BLOQUEIA"; mk_completo "$W/a"; rm "$W/a/tests/t
 echo "── sem gate M == N no CI BLOQUEIA"; mk_completo "$W/b"; printf 'steps: []\n' > "$W/b/.github/workflows/ci.yml"; esperar 1 "sem gate CI" "$W/b"
 echo "── sem teste de passkey BLOQUEIA"; mk_completo "$W/c"; rm "$W/c/tests/test_passkey.py"; esperar 1 "sem passkey" "$W/c"
 echo "── passkey sem os negativos (só registro) BLOQUEIA"; mk_completo "$W/d"; printf 'def test_passkey_registro(): pass\n' > "$W/d/tests/test_passkey.py"; esperar 1 "passkey parcial" "$W/d"
+echo "── gate só em COMENTÁRIO BLOQUEIA"; mk_completo "$W/e"; printf '# bash scripts/check-route-authz.sh\n' > "$W/e/.github/workflows/ci.yml"; esperar 1 "gate comentado" "$W/e"
+echo "── matriz só citada em README/comentário BLOQUEIA"; mk_completo "$W/f"; rm "$W/f/tests/test_access_matrix.py"; printf 'access matrix\n' > "$W/f/tests/README.md"; printf '# access matrix\ndef test_x(): pass\n' > "$W/f/tests/test_x.py"; esperar 1 "matriz em README" "$W/f"
+echo "── passkey só em comentário BLOQUEIA"; mk_completo "$W/g"; printf '# passkey challenge origin revoked\ndef test_passkey(): pass\n' > "$W/g/tests/test_passkey.py"; esperar 1 "passkey comentado" "$W/g"
 exit "$rc"

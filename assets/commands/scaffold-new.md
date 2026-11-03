@@ -11,15 +11,19 @@ a topologia **antes** de criar pasta. **Nada é "pra depois".**
 - **Slug** `<projeto>` (= `${ARGUMENTS}`), **domínio** `<domain>` (pra `auth.<domain>`).
 - **Bounded contexts:** quais aplicações o produto tem — cada uma vira `<projeto>_<ctx>_<lang>`.
   Na dúvida, comece com **um** contexto bem-fechado (melhor que dois domínios colados).
-- **Linguagem por serviço + ADR inicial** (`accepted`): fit → ADR. **Auth → Rust** (default por errar-caro); empate resolve em **Go**
-  (errar é caro); core segue o fit (Go default pragmático); front é **Node**.
+- **Linguagem por serviço + ADR inicial** (`accepted`): decide por **fit**, nunca por gosto. Defaults
+  **só de desempate**, cada um com ADR: auth/cripto → Rust, resto → Go (`references/linguagem.md`); front é **Node**.
 - **Grave o plano** em `<projeto>_archive/plan/<data>-scaffold.md` (topologia + ADRs + o checklist
   de bootstrap). Topologia grande? **peça aprovação**. Este é um alvo natural de `/eng-overdev`.
 
 ## Fase 1 — Workspace + archive — `references/estrutura.md` §1, `references/piso.md` §7
 - Confirme a **contenção**: tudo nasce **dentro** da pasta atual (nada de `cd ..`).
 - Crie `<projeto>_archive/` com a planta canônica da `schematize-archive` (ou rode `/archive-init`)
-  — o rastro antes do código. A árvore tem **um dono só**; não a redefina aqui.
+  — o rastro antes do código. A árvore tem **um dono só**; não a redefina aqui. Inclui `relatorios/`,
+  `custos/` e `.ritmo.json` (`assets/templates/ritmo.json.tpl`); gere o **1º relatório** agora.
+- **Git remoto por repo (piso 22):** para o archive e para CADA repo que for criado depois,
+  `gh repo create <org>/<repo> --private` + `git push -u origin main` **na hora**. Nenhuma fase
+  fecha com repo só local ou `HEAD != origin`.
 
 ## Fase 2 — Auth PRIMEIRO (app separada) — `references/estrutura.md` §4, `references/piso.md` §3
 - `<projeto>_auth_<lang>` — o **IdP**, servido em `auth.<domain>`, com o **baseline 2FA**:
@@ -41,15 +45,22 @@ a topologia **antes** de criar pasta. **Nada é "pra depois".**
   `migrate`/`health`/`rollback`/`logs`/`reset`/`test`), **fluxo de promoção** (dev→teste→git→
   hml→prd), **deploy destrutivo por seed** (`/<app>/.env`), **isolamento por app** (user Linux +
   systemd hardened por serviço), **instalação paralela** (`nproc`). Use o `/<prefixo>-ops`.
+- **Deploy só do git (23):** o ops clona/atualiza SHA/tag verificado; **VETADO** scp/rsync/tar|ssh.
+- **Ops é o gate da IA (24):** allowlist de operações tipadas, dry-run, log de auditoria, canal único.
+- **Build em dev/hml (29):** se há máquina, `assets/templates/maquinas.yml.tpl`; senão, build local.
 
 ## Fase 5 — CI + DoD + observabilidade — `references/piso.md` §4–§7
-- CI que roda test kit + gate da DoD e **só promove verde**; promoção hml/prd gated pelo fluxo.
+- CI (`assets/templates/ci.yml.tpl`): **`workflow_dispatch` + tags `hml-*`/`v*`**, `concurrency`, **sem
+  `pull_request`/push em branch** (piso 27); gate por commit LOCAL (`tools/ci.sh`). Promoção hml/prd
+  gated pelo fluxo. Não copie o `on:` de template de linguagem.
+- **Resiliência (28):** `resilience.yml.tpl` + os 7 testes em esqueleto vermelho + fila durável por serviço.
 - **DoD (§35)** como gate de PR em cada repo. Observabilidade (health/logs/métricas/tracing) em
   todo serviço + ops. Índice/**MAPA** (§39) gerado (`/eng-index`) e no archive.
 
 ## Fase 6 — Overdev + fechar provado — `references/bootstrap.md` §6
 - Overdev disponível (`/eng-overdev`). Ao fim, **rode `/scaffold-check`** contra o próprio projeto
-  novo: o bootstrap só termina com **zero itens do piso faltando** (provado, não auto-declarado).
+  novo: o bootstrap só termina com **zero itens do piso faltando** (provado, não auto-declarado) e
+  `check-piso22-29.sh` verde: remote + push + `HEAD == origin` em todos os repos (trava de conclusão).
 
 ## Piso (VETADO)
 O piso é **dia 0**, não sprint futuro. Auth **app separada** desde o primeiro commit (OIDC/PKCE);

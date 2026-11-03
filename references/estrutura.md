@@ -94,6 +94,13 @@ ausente vira **degradação graciosa** (fallback, outbox/retry, enfileira e segu
 cascata. O scaffold nasce com essa fronteira: nada de "o `ledger` não sobe se o `core` estiver
 fora". É o que faz a instalação paralela do ops funcionar (`references/piso.md` §4).
 
+**Piso 28 (microserviço autônomo):** o fallback não é memória. Dado que depende de outro serviço
+vai para **fila durável** (outbox/inbox em DB/Redis; ack só depois do commit; idempotência por chave),
+com retry+backoff+jitter, circuit breaker, **DLQ** e alerta com `trace_id`. Cada serviço traz
+`resilience.yml` (`assets/templates/resilience.yml.tpl`) e os **7 testes** (boot sem dependências;
+dependência fora do ar; restart com fila cheia; reentrega idempotente; DLQ; shutdown gracioso; crash
+entre persistir e confirmar), M == N — `schematize-engineering → references/testes.md`.
+
 ## 8. O que o root de cada repo tem (limpo)
 
 O root de cada repo fica **limpo**: código, config, `README.md`, `CLAUDE.md`, `LICENSE`. **Todo

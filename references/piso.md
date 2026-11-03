@@ -64,8 +64,9 @@ O `<projeto>_ops` (control plane, `references/estrutura.md` §6) nasce com os in
 
 - **Fluxo de promoção fixo, sem atalho:** `dev local → teste local (verde) → GitHub → hml → prd`.
   Nada pula etapa; **VETADO editar código direto no servidor**; hotfix segue o mesmo fluxo
-  acelerado. Servidor é **imutável por edição manual** — só recebe artefato com **proveniência
-  git** (commit SHA).
+  acelerado. Servidor é **imutável por edição manual**. **Deploy = o ops, rodando NA VPS, faz
+  `clone`/`fetch` + `checkout` de commit SHA/tag verificado do remoto git** (piso 23): VETADO
+  `scp`/`rsync`/`tar | ssh`/`docker save | load`/`git bundle`. Artefato/tarball promovido não existe.
 - **Deploy destrutivo por seed:** o ops provisiona em `/<app>/` clonando os repos dentro;
   `/<app>/.env` é o **seeder global** (fonte única de config); todo redeploy **apaga a
   implantação anterior e recria um clone zerado** só com o seed (idempotente, sem drift) —
@@ -79,8 +80,16 @@ O `<projeto>_ops` (control plane, `references/estrutura.md` §6) nasce com os in
   `ssh` + comando ad-hoc.
 - **Instalação SEMPRE paralela** (grau = `nproc`); falha no paralelo = **bug de independência**
   (prioridade máxima), corrigido de verdade — **nunca** mascarado serializando.
-- **CI com deploy gated:** o pipeline roda o test kit + gate da DoD e **só promove o que passou**;
-  a promoção pra hml/prd é gated pelo fluxo acima. Base em
+- **O ops é o GATE da IA** (piso 24): a IA nunca muda a VPS direto nem escreve SQL/comando próprio;
+  fala só com o ops (`ssh` com `command=` forçado ou API com mTLS) por **operações nomeadas e tipadas**
+  (allowlist, deny-by-default, dry-run, confirmação humana p/ destrutivo, **log de auditoria
+  append-only**, kill-switch; banco só-leitura por queries nomeadas). Falta comando → implementa NO
+  repo do ops, via git. Detalhe: `schematize-engineering → references/ops.md` §8.
+- **CI com deploy gated e gatilho do piso 27:** o pipeline roda test kit + gate da DoD e **só promove
+  o que passou**, mas **não roda por commit nem por PR**: o gate por commit é LOCAL (`tools/ci.sh`,
+  pre-commit/pre-push); o CI remoto roda **uma vez antes de promover a hml** (tag `hml-*`), em
+  release (`v*`) ou sob pedido (`workflow_dispatch`). Template: `assets/templates/ci.yml.tpl`.
+  A promoção pra hml/prd é gated pelo fluxo acima. Base em
   `schematize-engineering/references/ops.md` + `operacao.md` (§21).
 
 ## 4.1 Banco de dados — o schema é peça do dia 0
@@ -233,7 +242,7 @@ reputação em jogo.
 - Entregar de verdade fora de `prd` exige **as cinco** (ADR + allowlist ≤5 + cap + janela +
   subdomínio separado) — nenhuma delas é default de scaffold.
 
-## 10. Tabela-resumo do piso (o que o check procura)
+## 10. Tabela-resumo do piso (o que o check procura — 18 peças)
 
 | # | Peça do piso | Presença mínima no dia 0 |
 |---|---|---|
@@ -248,3 +257,36 @@ reputação em jogo.
 | 9 | Efeito externo (sink de fábrica) | `MAIL_PROVIDER=sink` default, `TEST_MAIL_DOMAIN`, `MAIL_MAX_PER_RUN`, guard no provider, Mailpit no compose |
 | 10 | Matriz de acesso por rota | teste das 4 personas por rota (status e corpo), deny-by-default, allowlist de públicas, gate M == N no CI (`scripts/check-day0-auth.sh`) |
 | 11 | Passkey na fase 0 | registro+asserção reais e2e no `auth.<domain>`; testes de challenge reutilizado, origin/rpId errado e credencial revogada (`scripts/check-day0-auth.sh`) |
+| 12 | Git remoto — trava de conclusão (22) | cada repo (inclusive o archive, PRIVADO): `git remote -v` não vazio, árvore limpa, `HEAD == origin`; `gh repo create --private` + 1º push no bootstrap |
+| 13 | Deploy só do git (23) | ops faz clone/fetch+checkout de SHA/tag; zero `scp`/`rsync`/`tar\|ssh`/`docker save` em deploy/CI/ops |
+| 14 | Ops é o gate da IA (24) | `<projeto>_ops` com allowlist de operações tipadas, dry-run, log de auditoria append-only; a IA nunca escreve SQL/comando próprio |
+| 15 | Ritmo + custos (25/26) | archive com `relatorios/` (30 min), `.ritmo.json` (handoff 6 h) e `custos/`; sem agent ocioso |
+| 16 | CI remoto só antes do hml (27) | workflows com `workflow_dispatch` + `push: tags [hml-*, v*]`, `concurrency` cancel-in-progress; **sem** `pull_request`/push em branch |
+| 17 | Microserviço autônomo (28) | `resilience.yml` por serviço, fila durável (outbox/inbox), 7 testes de resiliência nascendo vermelhos, M == N |
+| 18 | Build em dev/hml + higiene (29) | `maquinas.yml` (se há máquina dev/hml: `env` ∈ {dev,hml}, `papel: build-teste`) e `higiene.sh` após cada ciclo de teste |
+
+Prova das peças 12 a 18: `bash .claude/skills/schematize-scaffold/scripts/check-piso22-29.sh [--ativo] <workspace>` (§11).
+
+## 11. Pisos 22–29 no dia 0 (o que o scaffold planta junto)
+
+O dia 0 não termina no IAM/ops: o projeto nasce **já conforme** aos pisos 22–29 da
+`schematize-engineering` (não os reescrevemos aqui; cada item aponta para a base).
+
+- **22 — git remoto é a trava de conclusão.** Cada repo (auth, authfront, ctx, front, ops e o
+  **archive PRIVADO**) ganha `gh repo create <org>/<repo> --private` + `git push -u origin main`
+  **no bootstrap**, antes de qualquer feature. Sem remote acessível, push falho ou local divergente, a
+  demanda **não conclui**. Gate: `git remote -v` não vazio + `status` limpo + `HEAD == origin`.
+- **23/24 — deploy só do git; ops é o gate da IA.** O `<projeto>_ops` nasce com: deploy por
+  clone/fetch+checkout de SHA verificado, allowlist de operações tipadas, dry-run, log de auditoria,
+  kill-switch, banco só-leitura por queries nomeadas. A IA fala só com o ops.
+- **25/26 — ritmo.** `<projeto>_archive/relatorios/` (relatório a cada **30 min**), `.ritmo.json`
+  (`ritmo.json.tpl`; handoff a cada **6 h** e em todo fim de sessão) e `custos/` (`schematize cost
+  sync|report`; cada relatório leva o custo do período e o acumulado). Agent terminou/ocioso é
+  encerrado. O 1º relatório é gerado no bootstrap; tudo entra no git na hora.
+- **27 — CI remoto só antes do hml.** `ci.yml.tpl`: `workflow_dispatch` + tags `hml-*`/`v*`, sem PR.
+  O gate por commit é local (`tools/ci.sh`).
+- **28 — microserviço autônomo.** `resilience.yml.tpl` em todo serviço + fila durável + os 7 testes
+  (esqueleto vermelho no dia 0; `check-resilience.sh` da engineering prova M == N).
+- **29 — build em dev/hml + higiene.** Se há máquina dev/hml, `maquinas.yml.tpl` no ops: a ponte
+  direta vale **só** p/ build/teste no workspace remoto (nunca prd; o que produz não é promovível).
+  Após cada ciclo de teste: `higiene.sh` (dry-run por padrão, `--apply` explícito).

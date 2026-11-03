@@ -2,6 +2,19 @@
 
 Todas as mudanças relevantes deste pacote, no formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 com versionamento [SemVer](https://semver.org/lang/pt-BR/).
+## [Não lançado]
+### Adicionado
+- Piso do dia 0 estendido aos pisos 22–29 da engineering: peças 12 a 18 do check (git remoto como trava de conclusão, deploy só do git, ops como gate da IA, ritmo 30 min/6 h + `.ritmo.json` + `custos/`, CI remoto só antes do hml, microserviço autônomo com `resilience.yml`, build em dev/hml + `maquinas.yml` + higiene).
+- Gate `scripts/check-piso22-29.sh` (+ teste com vermelho por peça); delega à engineering (`check-deploy-git`, `check-resilience`, `check-ritmo`) quando à mão.
+- Templates `ci.yml.tpl` (`workflow_dispatch` + tags `hml-*`/`v*`, concurrency, sem PR), `resilience.yml.tpl`, `ritmo.json.tpl`, `maquinas.yml.tpl`.
+- Passos no bootstrap/`/scaffold-new`: `gh repo create --private` + push por repo, 1º relatório, resiliência, ops com contrato da IA.
+- Bloco "Herda os pisos 22–29" em SKILL.md e assets/CLAUDE.md.
+### Corrigido
+- `check-day0-auth.sh` não dá mais verde por palavra solta: exige declaração de teste (fora de comentário/README) e o gate `check-route-authz` em linha executável; testes vermelhos novos.
+- Variável de sink unificada em `MAIL_SINK_URL` (+ `MAIL_FROM` no template); removida a citação a ADR-0004 inexistente.
+- CI descrito como "só promove verde" agora fixa o gatilho do piso 27; templates de CI de linguagem não fornecem o `on:`.
+- Defaults de linguagem (auth/cripto → Rust, resto → Go) reescritos como desempate com ADR obrigatório; caminhos de script padronizados em `.claude/skills/schematize-scaffold/scripts/`.
+
 ## [0.7.0] — 2026-10-20
 ### Adicionado
 - Piso do dia 0 exige passkey na fase 0 e matriz de acesso por rota com gate no CI desde o primeiro endpoint.

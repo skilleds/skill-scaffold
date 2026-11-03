@@ -10,4 +10,6 @@ Antes de compactar, **arquive o handoff** (não perca o estado do scaffold/boots
    onde parou.
 2. `<projeto>_archive/context/<YYYY-MM-DD-HH-MM-SS>-checklist.md` — **FEITO vs EM ABERTO** (o
    checklist de bootstrap de `references/bootstrap.md`: peças do piso montadas vs pendentes).
+   Registre também `ultimo_handoff` em `<projeto>_archive/.ritmo.json` (piso 26: handoff a cada 6 h)
+   e **commit + push** do archive (piso 22: `HEAD == origin`).
 3. Só então rode `/compact` (foco na tarefa corrente).
