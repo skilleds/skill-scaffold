@@ -2,7 +2,7 @@
 
 Todas as mudanças relevantes deste pacote, no formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 com versionamento [SemVer](https://semver.org/lang/pt-BR/).
-## [Não lançado]
+## [0.8.0] — 2026-11-03
 ### Adicionado
 - Piso do dia 0 estendido aos pisos 22–29 da engineering: peças 12 a 18 do check (git remoto como trava de conclusão, deploy só do git, ops como gate da IA, ritmo 30 min/6 h + `.ritmo.json` + `custos/`, CI remoto só antes do hml, microserviço autônomo com `resilience.yml`, build em dev/hml + `maquinas.yml` + higiene).
 - Gate `scripts/check-piso22-29.sh` (+ teste com vermelho por peça); delega à engineering (`check-deploy-git`, `check-resilience`, `check-ritmo`) quando à mão.
